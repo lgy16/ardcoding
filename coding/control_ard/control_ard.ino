@@ -74,16 +74,7 @@ bool JsonThread::loop()
     //Request Device list
     //Serial.println("Request Device list");
 
-    Attatch_Devices();
-  }
-
-  //2
-  if(!strcmp(url, "/sensors") && !strcmp(method, "POST"))
-  {
-    //Request Sensor data
-    //Serial.println("Request Sensor data");
-
-    Post_Sensor_Data();
+    //Attatch_Devices();
   }
 
   //3
@@ -92,7 +83,7 @@ bool JsonThread::loop()
     //Request On/Off data
     //Serial.println("Request On/Off data");
 
-    On_Off_Data();
+    //On_Off_Data();
   }
 
   //4
@@ -105,7 +96,7 @@ bool JsonThread::loop()
     //Serial.print("\nstate = ");
     //Serial.println(state);
 
-    On_Off_Data();
+    //On_Off_Data();
   }
 
   //5
@@ -114,7 +105,7 @@ bool JsonThread::loop()
     //Request Range data
     //Serial.println("Request Range data");
 
-    Range_Data();
+    //Range_Data();
   }
 
   //6
@@ -127,7 +118,7 @@ bool JsonThread::loop()
     //Serial.print("\nstate = ");
     //Serial.println(state);
 
-    Range_Data();
+    //Range_Data();
   }
 
   // Sleep for one second:
@@ -162,7 +153,6 @@ void setup() {
     delay(10000);
   }
 
-
   Attatch_Arduino();
   Serial.println();
   Attatch_Devices();
@@ -186,8 +176,13 @@ void Attatch_Arduino() {
   JsonObject& body = root.createNestedObject("body");
   body["id"] = "84:38:35:6f:03:50";
   body["name"] = "arduino1";
-  root.printTo(Serial);
+  
+  String buffer;
+  root.printTo(buffer);
+  client.print(buffer.length());
+  root.printTo(client);
 }
+
 void Attatch_Devices() {
   StaticJsonBuffer<200> jsonBuffer;
 
@@ -200,7 +195,11 @@ void Attatch_Devices() {
   devices.add("window");
   devices.add("cool");
   devices.add("heat");
-  root.printTo(Serial);
+  
+  String buffer;
+  root.printTo(buffer);
+  client.print(buffer.length());
+  root.printTo(client);
 }
 
 void  On_Off_Data(String device, String state) {
@@ -214,5 +213,9 @@ void  On_Off_Data(String device, String state) {
   body["id"] = "84:38:35:6f:03:50";
   body["device"]=device;
   body["state"]=state;
-  root.printTo(Serial);
+  
+  String buffer;
+  root.printTo(buffer);
+  client.print(buffer.length());
+  root.printTo(client);
 }
