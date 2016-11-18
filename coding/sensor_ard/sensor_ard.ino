@@ -1,4 +1,4 @@
-//센서아두이노 코드 수정중3
+//센서아두이노 코드 수정중4
 
 #include <mthread.h>
 #include <ArduinoJson.h>
@@ -79,15 +79,16 @@ bool JsonThread::loop()
   const String device = body["device"];
   const int second = body["second"];
 
-  if (!url.compareTo("/devices") && !method.compareTo("GET")) //Request Device list
+  //Request Device list
+  if (!url.compareTo("/devices") && !method.compareTo("GET")) 
   {
-
     Serial.println("Request Device list");
 
     Attatch_Devices();
   }
 
-  if (!url.compareTo("/sensors") && !method.compareTo("POST"))  //Request Sensor data
+  //Request Sensor data
+  if (!url.compareTo("/sensors") && !method.compareTo("POST"))
   {
     Serial.println("Request Sensor data");
 
@@ -114,88 +115,95 @@ bool JsonThread::loop()
       sensor_value = analogRead(GasSensorPin);
     }
 
-    if (!url.compareTo("/onoff") && !method.compareTo("GET"))   //Request On/Off data
-    {
-      Serial.println("Request On/Off data");
-
-      On_Off_Data(device);
-    }
-
-    if (!url.compareTo("/onoff") && !method.compareTo("PUT")) //Set On/Off data
-    {
-      const String state = body["state"];
-
-      waterpump = state;
-      
-      Serial.println("Set On/Off data");
-      int onoff = 0;
-      if (state.equals("ON"))
-      {
-        onoff = 1;
-      }
-      else if (state.equals("OFF")) 
-      {
-        onoff = 0;
-      }
-      digitalWrite(waterpumpPin, onoff);
-
-      On_Off_Data(device);
-    }
-
-    if (!url.compareTo("/range") && !method.compareTo("GET")) //Request Range data
-    {
-      Serial.println("Request Range data");
-
-      Range_Data(device);
-    }
-
-    if (!url.compareTo("/range") && !method.compareTo("PUT"))  //Set Range data
-    {
-      Serial.println("Set Range data");
-      const int state = body["state"];
-      led = state;
-      /*
-      if (state == 0) {
-        analogWrite(ledPin, 0);
-      }
-      else if (state == 1) {
-        analogWrite(ledPin, 50);
-      }
-      else if (state == 2) {
-        analogWrite(ledPin, 100);
-      }
-      else if (state == 3) {
-        analogWrite(ledPin, 150);
-      }
-      else if (state == 4) {
-        analogWrite(ledPin, 200);
-      }
-      else if (state == 5) {
-        analogWrite(ledPin, 250);
-      }
-      */
-      analogWrite(ledPin, (led * 50));
-      Range_Data(device);
-    }
-
-    if (!url.compareTo("/duration") && !method.compareTo("GET"))   //Request Sensor data autocheck duration
-    {
-
-      Serial.println("Request Sensor data autocheck duration");
-
-      Autocheck_Sensor(sleeptime);
-    }
-
-    if (!url.compareTo("/duration") && !method.compareTo("PUT"))  //Set Sensor data autocheck duration
-    {
-      Serial.println("Set Sensor data autocheck duration");
-
-      sleeptime = second;
-      Autocheck_Sensor(sleeptime);
-    }
-
-    return true;
+    Post_Sensor_Data(sensor, sensor_value);
   }
+
+  //Request On/Off data
+  if (!url.compareTo("/onoff") && !method.compareTo("GET"))
+  {
+    Serial.println("Request On/Off data");
+
+    On_Off_Data(device);
+  }
+
+  //Set On/Off data
+  if (!url.compareTo("/onoff") && !method.compareTo("PUT"))
+  {
+    const String state = body["state"];
+
+    waterpump = state;
+    
+    Serial.println("Set On/Off data");
+    int onoff = 0;
+    if (state.equals("ON"))
+    {
+      onoff = 1;
+    }
+    else if (state.equals("OFF")) 
+    {
+      onoff = 0;
+    }
+    digitalWrite(waterpumpPin, onoff);
+
+    On_Off_Data(device);
+  }
+
+  //Request Range data
+  if (!url.compareTo("/range") && !method.compareTo("GET"))
+  {
+    Serial.println("Request Range data");
+
+    Range_Data(device);
+  }
+
+  //Set Range data
+  if (!url.compareTo("/range") && !method.compareTo("PUT"))
+  {
+    Serial.println("Set Range data");
+    const int state = body["state"];
+    led = state;
+    /*
+    if (state == 0) {
+      analogWrite(ledPin, 0);
+    }
+    else if (state == 1) {
+      analogWrite(ledPin, 50);
+    }
+    else if (state == 2) {
+      analogWrite(ledPin, 100);
+    }
+    else if (state == 3) {
+      analogWrite(ledPin, 150);
+    }
+    else if (state == 4) {
+      analogWrite(ledPin, 200);
+    }
+    else if (state == 5) {
+      analogWrite(ledPin, 250);
+    }
+    */
+    analogWrite(ledPin, (led * 50));
+    Range_Data(device);
+  }
+
+  //Request Sensor data autocheck duration
+  if (!url.compareTo("/duration") && !method.compareTo("GET")) 
+  {
+    Serial.println("Request Sensor data autocheck duration");
+
+    Autocheck_Sensor(sleeptime);
+  }
+
+  //Set Sensor data autocheck duration
+  if (!url.compareTo("/duration") && !method.compareTo("PUT"))
+  {
+    Serial.println("Set Sensor data autocheck duration");
+
+    sleeptime = second;
+    Autocheck_Sensor(sleeptime);
+  }
+
+  return true;
 }
 
 void setup() {
