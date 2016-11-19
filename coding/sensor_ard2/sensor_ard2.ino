@@ -15,10 +15,10 @@ void On_Off_Data(String);
 void Range_Data(String);
 void Autocheck_Sensor(int);
 
-char ssid[] = "smartfarm"; //와이파이 이름
-char pass[] = "smartfarm1234"; //와이파이 비밀번호
+char ssid[] = "IIR_LAB"; //와이파이 이름
+char pass[] = "robot2015!"; //와이파이 비밀번호
 char server[] = "165.229.89.100";  //서버 IP주소
-int portnum = 80;
+int portnum = 443;
 int status = WL_IDLE_STATUS;
 WiFiClient client;
 int sleeptime;
