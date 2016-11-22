@@ -78,7 +78,7 @@ void setup()
     delay(5000);
   }
 
-  sleeptime = 20;
+  sleeptime = 60;
 
   pinMode(waterpumpPin, OUTPUT);
   pinMode(ledPin, OUTPUT);
@@ -146,18 +146,6 @@ void Attatch_Arduino()
   strcpy_P(buffer,(char*)attach_ard);
   String json_str = String(buffer);
   Send_json(json_str);
-/*
-  String str1 = json_str.substring(0, 90);
-  String str2 = json_str.substring(90);
-  int str_length = json_str.length();
-  client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
-  Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.println(client.print(str2));
-  */
 }
 
 void Attatch_Devices()
@@ -167,18 +155,6 @@ void Attatch_Devices()
   strcpy_P(buffer,(char*)attach_dev);
   String json_str = String(buffer);
   Send_json(json_str);
- /* 
-  String str1 = json_str.substring(0, 90);
-  String str2 = json_str.substring(90);
-  int str_length = json_str.length();
-  client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
-  Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.println(client.print(str2));
-  */
 }
 
 void Sensor_Data(String sen, double value)
@@ -192,20 +168,6 @@ void Sensor_Data(String sen, double value)
   strcpy_P(buffer, (char*)sensor_data_3);
   json_str += buffer;
   Send_json(json_str);
-
-  /*
-  //String json_str = "{\"url\":\"/sensors\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"sensor\":\"" + sen + "\",\"value\":" + String(value) + "}}";
-  String str1 = json_str.substring(0, 90);
-  String str2 = json_str.substring(90);
-  int str_length = json_str.length();
-  client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
-  Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.println(client.print(str2));
-  */
 }
 
 void Post_Sensor_Data(String sen, double value)
@@ -219,20 +181,6 @@ void Post_Sensor_Data(String sen, double value)
   strcpy_P(buffer, (char*)sensor_data_3);
   json_str += buffer;
   Send_json(json_str);
-
-  /*
-  //String json_str = "{\"url\":\"/sensors\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+sen+"\",\"value\":"+String(value)+"}}";
-  String str1 = json_str.substring(0, 90);
-  String str2 = json_str.substring(90);
-  int str_length = json_str.length();
-  client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
-  Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.println(client.print(str2));
-  */
 }
 
 void  On_Off_Data(String device)
@@ -246,20 +194,6 @@ void  On_Off_Data(String device)
   strcpy_P(buffer, (char*)sensor_data_3);
   json_str += buffer;
   Send_json(json_str);
-  
-  /*
-  //String json_str = "{\"url\":\"/onoff\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":"+device+"\",\"state\":\""+waterpump+"}}"; 
-  String str1 = json_str.substring(0, 90);
-  String str2 = json_str.substring(90);
-  int str_length = json_str.length();
-  client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
-  Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.println(client.print(str2));
-  */
 }
 
 void Range_Data(String device)  // led
@@ -273,20 +207,6 @@ void Range_Data(String device)  // led
   strcpy_P(buffer, (char*)sensor_data_3);
   json_str += buffer;
   Send_json(json_str);
-
-  /*
-  //String json_str = "{\"url\":\"/range\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+device+"\",\"state\":"+String(led)+"}}"; 
-  String str1 = json_str.substring(0, 90);
-  String str2 = json_str.substring(90);
-  int str_length = json_str.length();
-  client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
-  Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.println(client.print(str2));
-  */
 }
 
 void Autocheck_Sensor(int duration)
@@ -298,20 +218,6 @@ void Autocheck_Sensor(int duration)
   strcpy_P(buffer, (char*)sensor_data_3);
   json_str += buffer;
   Send_json(json_str);
-
-  /*
-  //String json_str = "{\"url\":\"/duration\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"second\":"+String(duration)+"}}";
-  String str1 = json_str.substring(0, 90);
-  String str2 = json_str.substring(90);
-  int str_length = json_str.length();
-  client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
-  Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.println(client.print(str2));
-  */
 }
 
 
@@ -319,6 +225,8 @@ void Autocheck_Sensor(int duration)
 ////////Json Decoding
 void Json_decoding()
 {
+  Serial.println("json decoding");
+  
   char json[256] {0};
   client.read((uint8_t*)json, 256);
 
@@ -425,7 +333,7 @@ void Json_decoding()
   }
 
   //Request Sensor data autocheck duration
-  if (!url.cfompareTo("/duration") && !method.compareTo("GET"))
+  if (!url.compareTo("/duration") && !method.compareTo("GET"))
   {
     Serial.println("Request Sensor data autocheck duration");
 
