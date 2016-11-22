@@ -13,6 +13,7 @@ void Post_Sensor_Data(String, double);
 void On_Off_Data(String);
 void Range_Data(String);
 void Autocheck_Sensor(int);
+void Json_decoding();
 
 char ssid[] = "IIR_LAB"; //와이파이 이름
 char pass[] = "robot2015!"; //와이파이 비밀번호
@@ -29,30 +30,6 @@ const int cdsPin = A2, ledPin = 9;
 const int SoilSensorPin = A0;
 const int GasSensorPin = A1;
 int count = 0;
-
-/*
-class ByteCounter : public Print
-{
-  public:
-    ByteCounter()
-      : len(0)
-    {
-    }
-
-    virtual size_t write(uint8_t c)
-    {
-      len++;
-    }
-
-    int length() const
-    {
-      return len;
-    }
-
-  private:
-    int len;
-};
-*/
 
 void setup()
 {
@@ -91,9 +68,12 @@ void setup()
   pinMode(ledPin, OUTPUT);
   dht.begin();
 
-  Attatch_Arduino();
+  Attatch_Arduino();  //attach_arduino
   Serial.println();
-  Attatch_Devices();
+
+  delay(3000);
+  
+  Attatch_Devices();  //attach_devices
   Serial.println();
 
   led = 0;
@@ -108,7 +88,154 @@ void setup()
 void loop()
 {
   Serial.println("loop");
-  char json[256] {0};
+ 
+  ////////////////////////sensing///////////////////////
+  if (count == 0 || count == sleeptime)
+  {
+    Serial.println("sensing");
+   
+    Sensor_Data("temp", dht.readTemperature());  //온도
+    Sensor_Data("humid", dht.readHumidity());  //습도
+    Sensor_Data("soil", analogRead(SoilSensorPin));   //토양수분
+    Sensor_Data("gas", analogRead(GasSensorPin));   //가스
+
+    count = count % sleeptime;
+  }
+
+  delay(1000);
+  count++;
+}
+
+
+//////////////////////////json 함수들
+void Attatch_Arduino()
+{
+  Serial.println("Attach_Arduino");
+  
+  String json_str = "{\"url\":\"/arduino\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"name\":\"arduino2\"}}";
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.print(client.print(str2));
+}
+
+void Attatch_Devices()
+{
+ Serial.println("Attach_Devices");
+  
+  String json_str = "{\"url\":\"/devices\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"devices\":[\"light\",\"temp\",\"humid\",\"soil\",\"gas\",\"led\",\"pump\"]}}";
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.print(client.print(str2));
+}
+
+void Sensor_Data(String sen, double value)
+{
+  Serial.println("Sensor Data");
+  
+  String json_str = "{\"url\":\"/sensors\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"sensor\":\"" + sen + "\",\"value\":" + String(value) + "}}";
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.print(client.print(str2));
+}
+
+void Post_Sensor_Data(String sen, double value)
+{
+  Serial.println("Post Sensor Data");
+  
+  String json_str = "{\"url\":\"/sensors\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+sen+"\",\"value\":"+String(value)+"}}";
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.print(client.print(str2));
+}
+
+void  On_Off_Data(String device)
+{
+  Serial.println("On Off Data");
+  
+  String json_str = "{\"url\":\"/onoff\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":"+device+"\",\"state\":\""+waterpump+"}}"; 
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.print(client.print(str2));
+}
+
+void Range_Data(String device)  // led
+{
+  Serial.println("Range Data");
+  
+  String json_str = "{\"url\":\"/range\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+device+"\",\"state\":"+String(led)+"}}"; 
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.print(client.print(str2));
+}
+
+void Autocheck_Sensor(int duration)
+{
+  Serial.println("Autocheck Sensor");
+  
+  String json_str = "{\"url\":\"/duration\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"second\":"+String(duration)+"}}";
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.print(client.print(str2));
+}
+
+
+
+
+
+
+////////Json Decoding
+void Json_decoding()
+{
+   char json[256] {0};
   client.read((uint8_t*)json, 256);
 
   Serial.println(json);
@@ -233,205 +360,5 @@ void loop()
     Autocheck_Sensor(sleeptime);
   }
 
-
-
-  ////////////////////////sensing///////////////////////
-  if (count == 0 || count == sleeptime)
-  {
-
-    Serial.println("sensing");
-    Sensor_Data("light", analogRead(cdsPin));   //조도
-    String sensing_json;
-    String one = "{\"url\":\"/sensors\",\"method\",:\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"sensor\":\"";
-    String two = "\",\"value\":" + String(analogRead(cdsPin)) + "}}";
-    sensing_json = one + "light" + two;
-
-    //Serial.println(one);
-    //Serial.println(sen);
-    //Serial.println(two);
-    //Serial.println(sensing_json);
-    Sensor_Data("temp", dht.readTemperature());  //온도
-    Sensor_Data("humid", dht.readHumidity());  //습도
-    Sensor_Data("soil", analogRead(SoilSensorPin));   //토양수분
-    Sensor_Data("gas", analogRead(GasSensorPin));   //가스
-
-    count = count % sleeptime;
-  }
-
-  delay(1000);
-  count++;
-}
-
-
-
-
-//////////////////////////json 함수들
-void Attatch_Arduino()
-{
-  Serial.println("attctch arduino");
-  StaticJsonBuffer<200> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.createObject();
-  root["url"] = "/arduino";
-  root["method"] = "PUT";
-  JsonObject& body = root.createNestedObject("body");
-  body["id"] = "84:38:35:6f:03:51";
-  body["name"] = "arduino2";
-
-  //ByteCounter counter;
-  //root.printTo(counter);
-
-  Serial.print(root.measureLength());  //숫자찍기
-  Serial.print("\t");
-  client.print(root.measureLength()); //서버로 숫자찍기
-  root.printTo(Serial);  //시리얼에 내용찍기
-  Serial.println("");
-  root.printTo(client); //서버로 전송
-
-}
-
-void Attatch_Devices()
-{
-
-  Serial.println("attatch devices");
-  StaticJsonBuffer<200> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.createObject();
-  root["url"] = "/devices";
-  root["method"] = "PUT";
-  JsonObject& body = root.createNestedObject("body");
-  body["id"] = "84:38:35:6f:03:51";
-  JsonArray& devices = body.createNestedArray("devices");
-  devices.add("temp");
-  devices.add("humid");
-  devices.add("soil");
-  devices.add("light");
-  devices.add("gas");
-  devices.add("led");
-  devices.add("pump");
-
-/*
-  ByteCounter counter;
-  root.printTo(counter);
-
-  Serial.println(counter.length());  //숫자찍기
-  client.print(counter.length());
-  root.printTo(Serial);  //내용찍기
-  root.printTo(client);
-  */
-  Serial.print(root.measureLength());  //숫자찍기
-  Serial.print("\t");
-  client.print(root.measureLength()); //서버로 숫자찍기
-  root.printTo(Serial);  //시리얼에 내용찍기
-  Serial.println("");
-  root.printTo(client); //서버로 전송
-}
-
-void Sensor_Data(String sen, double value)
-{
-  //조도, 토양수분, 온습도, 가스
-  StaticJsonBuffer<200> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.createObject();
-  root["url"] = "/sensors";
-  root["method"] = "PUT";
-  JsonObject& body = root.createNestedObject("body");
-  body["id"] = "84:38:35:6f:03:51";
-  body["sensor"] = sen;
-  body["value"] = value;
-
-  Serial.print(root.measureLength());  //숫자찍기
-  Serial.print("\t");
-  client.print(root.measureLength()); //서버로 숫자찍기
-  root.printTo(Serial);  //시리얼에 내용찍기
-  Serial.println("");
-  root.printTo(client); //서버로 전송   
-}
-
-void Post_Sensor_Data(String sen, double value)
-{
-  Serial.println("post sensor data");
-  StaticJsonBuffer<200> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.createObject();
-  root["url"] = "/sensors";
-  root["method"] = "POST";
-  JsonObject& body = root.createNestedObject("body");
-  body["id"] = "84:38:35:6f:03:51";
-  body["sensor"] = sen;
-  body["value"] = value;
-
-  Serial.print(root.measureLength());  //숫자찍기
-  Serial.print("\t");
-  client.print(root.measureLength()); //서버로 숫자찍기
-  root.printTo(Serial);  //시리얼에 내용찍기
-  Serial.println("");
-  root.printTo(client); //서버로 전송
-
-}
-
-void  On_Off_Data(String device)
-{
-  Serial.println("on off data");
-  //waterpump
-  //fan, pump
-  StaticJsonBuffer<200> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.createObject();
-  root["url"] = "/onoff";
-  root["method"] = "Post";
-  JsonObject& body = root.createNestedObject("body");
-  body["id"] = "84:38:35:6f:03:51";
-  body["device"] = device;
-  body["state"] = waterpump;
-  
-  Serial.print(root.measureLength());  //숫자찍기
-  Serial.print("\t");
-  client.print(root.measureLength()); //서버로 숫자찍기
-  root.printTo(Serial);  //시리얼에 내용찍기
-  Serial.println("");
-  root.printTo(client); //서버로 전송
-}
-
-void Range_Data(String device)  // led
-{
-  Serial.println("range data");
-  StaticJsonBuffer<200> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.createObject();
-  root["url"] = "/range";
-  root["method"] = "POST";
-  JsonObject& body = root.createNestedObject("body");
-  body["id"] = "84:38:35:6f:03:51";
-  body["device"] = device;
-  body["state"] = led;
-  
-  Serial.print(root.measureLength());  //숫자찍기
-  Serial.print("\t");
-  client.print(root.measureLength()); //서버로 숫자찍기
-  root.printTo(Serial);  //시리얼에 내용찍기
-  Serial.println("");
-  root.printTo(client); //서버로 전송
-
-}
-
-void Autocheck_Sensor(int duration)
-{
-  Serial.println("autocheck sensor");
-  StaticJsonBuffer<200> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.createObject();
-  root["url"] = "/duration";
-  root["method"] = "POST";
-  JsonObject& body = root.createNestedObject("body");
-  body["id"] = "84:38:35:6f:03:51";
-  body["second"] = duration;
-
-  Serial.print(root.measureLength());  //숫자찍기
-  Serial.print("\t");
-  client.print(root.measureLength()); //서버로 숫자찍기
-  root.printTo(Serial);  //시리얼에 내용찍기
-  Serial.println("");
-  root.printTo(client); //서버로 전송
 }
 
