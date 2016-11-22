@@ -44,21 +44,20 @@ void setup()
   // 와이파이 연결 시도
   while (status != WL_CONNECTED)
   {
-    Serial.print("Attempting to connect to WPA SSID: ");
-    Serial.println(ssid);
+    //Serial.print("Attempting to connect to WPA SSID: ");
+    //Serial.println(ssid);
     //WPA/WAP2 네트워크에 연결
     status = WiFi.begin(ssid, pass);
     delay(5000);
   }
-
-  Serial.print("connected ");
+  Serial.print("WIFI connected ");
 
   while (!client.connect(server, portnum))
   {
     //서버 연결 시도
     Serial.println("connecting to Server...");
 
-    client.println();
+    //client.println();
     delay(5000);
   }
 
@@ -81,7 +80,6 @@ void setup()
 
   analogWrite(ledPin, led * 50); //led 기본값 out
   digitalWrite(waterpumpPin, 0);  //waterpump 기본값 out
-
 }
 
 
@@ -101,7 +99,6 @@ void loop()
 
     count = count % sleeptime;
   }
-
   delay(1000);
   count++;
 }
@@ -117,12 +114,12 @@ void Attatch_Arduino()
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
+  //Serial.print(json_str + "\t");
+  //Serial.print(str_length);
+  //Serial.print("\t");
   Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.print(client.print(str2));
+  //Serial.print("\t");
+  Serial.println(client.print(str2));
 }
 
 void Attatch_Devices()
@@ -134,12 +131,12 @@ void Attatch_Devices()
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
+  //Serial.print(json_str + "\t");
+  //Serial.print(str_length);
+  //Serial.print("\t");
   Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.print(client.print(str2));
+  //Serial.print("\t");
+  Serial.println(client.print(str2));
 }
 
 void Sensor_Data(String sen, double value)
@@ -151,12 +148,12 @@ void Sensor_Data(String sen, double value)
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
+  //Serial.print(json_str + "\t");
+  //Serial.print(str_length);
+  //Serial.print("\t");
   Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.print(client.print(str2));
+  //Serial.print("\t");
+  Serial.println(client.print(str2));
 }
 
 void Post_Sensor_Data(String sen, double value)
@@ -168,12 +165,12 @@ void Post_Sensor_Data(String sen, double value)
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
+  //Serial.print(json_str + "\t");
+  //Serial.print(str_length);
+  //Serial.print("\t");
   Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.print(client.print(str2));
+  //Serial.print("\t");
+  Serial.println(client.print(str2));
 }
 
 void  On_Off_Data(String device)
@@ -185,12 +182,12 @@ void  On_Off_Data(String device)
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
+  //Serial.print(json_str + "\t");
+  //Serial.print(str_length);
+  //Serial.print("\t");
   Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.print(client.print(str2));
+  //Serial.print("\t");
+  Serial.println(client.print(str2));
 }
 
 void Range_Data(String device)  // led
@@ -202,12 +199,12 @@ void Range_Data(String device)  // led
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
+  //Serial.print(json_str + "\t");
+  //Serial.print(str_length);
+  //Serial.print("\t");
   Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.print(client.print(str2));
+  //Serial.print("\t");
+  Serial.println(client.print(str2));
 }
 
 void Autocheck_Sensor(int duration)
@@ -219,12 +216,12 @@ void Autocheck_Sensor(int duration)
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  Serial.print(json_str + "\t");
-  Serial.print(str_length);
-  Serial.print("\t");
+  //Serial.print(json_str + "\t");
+  //Serial.print(str_length);
+  //Serial.print("\t");
   Serial.print(client.print(str1));
-  Serial.print("\t");
-  Serial.print(client.print(str2));
+  //Serial.print("\t");
+  Serial.println(client.print(str2));
 }
 
 
@@ -235,12 +232,10 @@ void Autocheck_Sensor(int duration)
 ////////Json Decoding
 void Json_decoding()
 {
-   char json[256] {0};
+  char json[256] {0};
   client.read((uint8_t*)json, 256);
 
   Serial.println(json);
-
-  //char json[] = "{ \"url\" : \"/duration\", \"method\" : \"PUT\", \"body\" : { \"sensor\" : \"humid\", \"second\" : 256 } }";
 
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject & root = jsonBuffer.parseObject(json);
@@ -359,6 +354,5 @@ void Json_decoding()
     count = 0;
     Autocheck_Sensor(sleeptime);
   }
-
 }
 
