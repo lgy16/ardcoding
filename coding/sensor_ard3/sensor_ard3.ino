@@ -14,11 +14,28 @@ void On_Off_Data(String);
 void Range_Data(String);
 void Autocheck_Sensor(int);
 void Json_decoding();
+void Send_json();
 
 char ssid[] = "IIR_LAB"; //와이파이 이름
 char pass[] = "robot2015!"; //와이파이 비밀번호
 char server[] = "165.229.89.100";  //서버 IP주소
 int portnum = 443;
+
+const char attach_ard[] PROGMEM = "{\"url\":\"/arduino\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"name\":\"arduino2\"}}";
+const char attach_dev[] PROGMEM = "{\"url\":\"/devices\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"devices\":[\"light\",\"temp\",\"humid\",\"soil\",\"gas\",\"led\",\"pump\"]}}";
+const char sensor_data_1[] PROGMEM = "{\"url\":\"/sensors\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"sensor\":\"";
+const char sensor_data_2[] PROGMEM = "\",\"value\":";
+const char sensor_data_3[] PROGMEM = "}}";
+const char post_sensor_data_1[] PROGMEM = "{\"url\":\"/sensors\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\"";
+const char post_sensor_data_2[] PROGMEM = "\",\"value\":";
+const char on_off_data_1[] PROGMEM = "{\"url\":\"/onoff\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":";
+const char on_off_data_2[] PROGMEM = "\",\"state\":\"";
+const char range_data_1[] PROGMEM = "{\"url\":\"/range\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\"";
+const char range_data_2[] PROGMEM = "\",\"state\":";
+const char autocheck_sensor_1[] PROGMEM = "{\"url\":\"/duration\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"second\":";
+
+char buffer[200];
+
 int status = WL_IDLE_STATUS;
 WiFiClient client;
 int sleeptime;
@@ -86,12 +103,15 @@ void setup()
 void loop()
 {
   Serial.println("loop");
- 
+
+  Json_decoding();
+  
   ////////////////////////sensing///////////////////////
   if (count == 0 || count == sleeptime)
   {
     Serial.println("sensing");
-   
+
+    Sensor_Data("light", analogRead(cdsPin));   //조도
     Sensor_Data("temp", dht.readTemperature());  //온도
     Sensor_Data("humid", dht.readHumidity());  //습도
     Sensor_Data("soil", analogRead(SoilSensorPin));   //토양수분
@@ -104,128 +124,195 @@ void loop()
 }
 
 
+void Send_json(String json_str)
+{
+  String str1 = json_str.substring(0, 90);
+  String str2 = json_str.substring(90);
+  int str_length = json_str.length();
+  client.print(str_length);
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
+  Serial.print(client.print(str1));
+  Serial.print("\t");
+  Serial.println(client.print(str2));
+}
+
 //////////////////////////json 함수들
 void Attatch_Arduino()
 {
   Serial.println("Attach_Arduino");
   
-  String json_str = "{\"url\":\"/arduino\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"name\":\"arduino2\"}}";
+  strcpy_P(buffer,(char*)attach_ard);
+  String json_str = String(buffer);
+  Send_json(json_str);
+/*
   String str1 = json_str.substring(0, 90);
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  //Serial.print(json_str + "\t");
-  //Serial.print(str_length);
-  //Serial.print("\t");
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
   Serial.print(client.print(str1));
-  //Serial.print("\t");
+  Serial.print("\t");
   Serial.println(client.print(str2));
+  */
 }
 
 void Attatch_Devices()
 {
  Serial.println("Attach_Devices");
-  
-  String json_str = "{\"url\":\"/devices\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"devices\":[\"light\",\"temp\",\"humid\",\"soil\",\"gas\",\"led\",\"pump\"]}}";
+
+  strcpy_P(buffer,(char*)attach_dev);
+  String json_str = String(buffer);
+  Send_json(json_str);
+ /* 
   String str1 = json_str.substring(0, 90);
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  //Serial.print(json_str + "\t");
-  //Serial.print(str_length);
-  //Serial.print("\t");
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
   Serial.print(client.print(str1));
-  //Serial.print("\t");
+  Serial.print("\t");
   Serial.println(client.print(str2));
+  */
 }
 
 void Sensor_Data(String sen, double value)
 {
   Serial.println("Sensor Data");
-  
-  String json_str = "{\"url\":\"/sensors\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"sensor\":\"" + sen + "\",\"value\":" + String(value) + "}}";
+
+  strcpy_P(buffer, (char*)sensor_data_1);
+  String json_str = String(buffer) + sen;
+  strcpy_P(buffer, (char*)sensor_data_2);
+  json_str += (buffer + String(value));
+  strcpy_P(buffer, (char*)sensor_data_3);
+  json_str += buffer;
+  Send_json(json_str);
+
+  /*
+  //String json_str = "{\"url\":\"/sensors\",\"method\":\"PUT\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"sensor\":\"" + sen + "\",\"value\":" + String(value) + "}}";
   String str1 = json_str.substring(0, 90);
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  //Serial.print(json_str + "\t");
-  //Serial.print(str_length);
-  //Serial.print("\t");
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
   Serial.print(client.print(str1));
-  //Serial.print("\t");
+  Serial.print("\t");
   Serial.println(client.print(str2));
+  */
 }
 
 void Post_Sensor_Data(String sen, double value)
 {
   Serial.println("Post Sensor Data");
-  
-  String json_str = "{\"url\":\"/sensors\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+sen+"\",\"value\":"+String(value)+"}}";
+
+  strcpy_P(buffer, (char*)post_sensor_data_1);
+  String json_str = String(buffer) + sen;
+  strcpy_P(buffer, (char*)post_sensor_data_2);
+  json_str += (buffer + String(value));
+  strcpy_P(buffer, (char*)sensor_data_3);
+  json_str += buffer;
+  Send_json(json_str);
+
+  /*
+  //String json_str = "{\"url\":\"/sensors\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+sen+"\",\"value\":"+String(value)+"}}";
   String str1 = json_str.substring(0, 90);
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  //Serial.print(json_str + "\t");
-  //Serial.print(str_length);
-  //Serial.print("\t");
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
   Serial.print(client.print(str1));
-  //Serial.print("\t");
+  Serial.print("\t");
   Serial.println(client.print(str2));
+  */
 }
 
 void  On_Off_Data(String device)
 {
   Serial.println("On Off Data");
+
+  strcpy_P(buffer, (char*)on_off_data_1);
+  String json_str = String(buffer) + device;
+  strcpy_P(buffer, (char*)on_off_data_2);
+  json_str += (buffer + waterpump);
+  strcpy_P(buffer, (char*)sensor_data_3);
+  json_str += buffer;
+  Send_json(json_str);
   
-  String json_str = "{\"url\":\"/onoff\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":"+device+"\",\"state\":\""+waterpump+"}}"; 
+  /*
+  //String json_str = "{\"url\":\"/onoff\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":"+device+"\",\"state\":\""+waterpump+"}}"; 
   String str1 = json_str.substring(0, 90);
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  //Serial.print(json_str + "\t");
-  //Serial.print(str_length);
-  //Serial.print("\t");
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
   Serial.print(client.print(str1));
-  //Serial.print("\t");
+  Serial.print("\t");
   Serial.println(client.print(str2));
+  */
 }
 
 void Range_Data(String device)  // led
 {
   Serial.println("Range Data");
-  
-  String json_str = "{\"url\":\"/range\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+device+"\",\"state\":"+String(led)+"}}"; 
+
+  strcpy_P(buffer, (char*)range_data_1);
+  String json_str = String(buffer) + device;
+  strcpy_P(buffer, (char*)range_data_2);
+  json_str += (buffer + String(led));
+  strcpy_P(buffer, (char*)sensor_data_3);
+  json_str += buffer;
+  Send_json(json_str);
+
+  /*
+  //String json_str = "{\"url\":\"/range\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\""+device+"\",\"state\":"+String(led)+"}}"; 
   String str1 = json_str.substring(0, 90);
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  //Serial.print(json_str + "\t");
-  //Serial.print(str_length);
-  //Serial.print("\t");
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
   Serial.print(client.print(str1));
-  //Serial.print("\t");
+  Serial.print("\t");
   Serial.println(client.print(str2));
+  */
 }
 
 void Autocheck_Sensor(int duration)
 {
   Serial.println("Autocheck Sensor");
-  
-  String json_str = "{\"url\":\"/duration\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"second\":"+String(duration)+"}}";
+
+  strcpy_P(buffer, (char*)autocheck_sensor_1);
+  String json_str = String(buffer) + String(duration);
+  strcpy_P(buffer, (char*)sensor_data_3);
+  json_str += buffer;
+  Send_json(json_str);
+
+  /*
+  //String json_str = "{\"url\":\"/duration\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"second\":"+String(duration)+"}}";
   String str1 = json_str.substring(0, 90);
   String str2 = json_str.substring(90);
   int str_length = json_str.length();
   client.print(str_length);
-  //Serial.print(json_str + "\t");
-  //Serial.print(str_length);
-  //Serial.print("\t");
+  Serial.print(json_str + "\t");
+  Serial.print(str_length);
+  Serial.print("\t");
   Serial.print(client.print(str1));
-  //Serial.print("\t");
+  Serial.print("\t");
   Serial.println(client.print(str2));
+  */
 }
-
-
-
 
 
 
@@ -338,7 +425,7 @@ void Json_decoding()
   }
 
   //Request Sensor data autocheck duration
-  if (!url.compareTo("/duration") && !method.compareTo("GET"))
+  if (!url.cfompareTo("/duration") && !method.compareTo("GET"))
   {
     Serial.println("Request Sensor data autocheck duration");
 
