@@ -6,14 +6,14 @@ DHT dht(DHTPIN, DHTTYPE);
 #include <WiFi.h>
 #include <SPI.h>
 
-void Attatch_Arduino();
-void Attatch_Devices();
+void Attach_Arduino();
+void Attach_Devices();
 void Sensor_Data(String, double);
 void Post_Sensor_Data(String, double);
 void On_Off_Data(String);
 void Range_Data(String);
-void Autocheck_Sensor(int);
-void Json_decoding();
+void Autocheck_Sensor();
+int Json_decoding();
 void Send_json();
 
 char ssid[] = "IIR_LAB"; //와이파이 이름
@@ -28,8 +28,9 @@ const char sensor_data_2[] PROGMEM = "\",\"value\":";
 const char sensor_data_3[] PROGMEM = "}}";
 const char post_sensor_data_1[] PROGMEM = "{\"url\":\"/sensors\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\"";
 const char post_sensor_data_2[] PROGMEM = "\",\"value\":";
-const char on_off_data_1[] PROGMEM = "{\"url\":\"/onoff\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":";
+const char on_off_data_1[] PROGMEM = "{\"url\":\"/onoff\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\"";
 const char on_off_data_2[] PROGMEM = "\",\"state\":\"";
+const char on_off_data_3[] PROGMEM = "\"}}";
 const char range_data_1[] PROGMEM = "{\"url\":\"/range\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"device\":\"";
 const char range_data_2[] PROGMEM = "\",\"state\":";
 const char autocheck_sensor_1[] PROGMEM = "{\"url\":\"/duration\",\"method\":\"POST\",\"body\":{\"id\":\"84:38:35:6f:03:51\",\"second\":";
@@ -47,6 +48,9 @@ const int cdsPin = A2, ledPin = 9;
 const int SoilSensorPin = A0;
 const int GasSensorPin = A1;
 int count = 0;
+
+String temp_sensor;
+double temp_sensor_value;
 
 void setup()
 {
@@ -84,12 +88,12 @@ void setup()
   pinMode(ledPin, OUTPUT);
   dht.begin();
 
-  Attatch_Arduino();  //attach_arduino
+  Attach_Arduino();  //attach_arduino
   Serial.println();
 
   delay(3000);
   
-  Attatch_Devices();  //attach_devices
+  Attach_Devices();  //attach_devices
   Serial.println();
 
   led = 0;
@@ -104,7 +108,31 @@ void loop()
 {
   Serial.println("loop");
 
-  Json_decoding();
+  int what_json = 0;
+
+  //Request Device list :: 1  ->    Attach_Devices();
+  //Request Sensor data :: 2  ->    Post_Sensor_Data(sensor, sensor_value); //
+  //Request On/Off data :: 3  ->   On_Off_Data(device); //waterpump
+  //Set On/Off data :: 4  ->   On_Off_Data(device); //waterpump
+  //Request Range data :: 5   ->    Range_Data(device); //led
+  //Set Range data ::6    -> Range_Data(device); //led
+  //Request Sensor data autocheck duration :: 7   ->  Autocheck_Sensor(sleeptime);
+  //Set Sensor data autocheck duration :: 8     ->  Autocheck_Sensor(sleeptime);
+
+  what_json = Json_decoding();
+
+  switch(what_json)
+  {
+    case 1 : Attach_Devices(); break;
+    case 2 : Post_Sensor_Data(temp_sensor, temp_sensor_value); break;
+    case 3 : On_Off_Data("pump"); break;
+    case 4 : On_Off_Data("pump"); break;
+    case 5 : Range_Data("led"); break;
+    case 6 : Range_Data("led"); break;
+    case 7 : Autocheck_Sensor(); break;
+    case 8 : Autocheck_Sensor(); break;
+    default : break;
+  }  
   
   ////////////////////////sensing///////////////////////
   if (count == 0 || count == sleeptime)
@@ -139,7 +167,7 @@ void Send_json(String json_str)
 }
 
 //////////////////////////json 함수들
-void Attatch_Arduino()
+void Attach_Arduino()
 {
   Serial.println("Attach_Arduino");
   
@@ -148,7 +176,7 @@ void Attatch_Arduino()
   Send_json(json_str);
 }
 
-void Attatch_Devices()
+void Attach_Devices()
 {
  Serial.println("Attach_Devices");
 
@@ -191,7 +219,7 @@ void  On_Off_Data(String device)
   String json_str = String(buffer) + device;
   strcpy_P(buffer, (char*)on_off_data_2);
   json_str += (buffer + waterpump);
-  strcpy_P(buffer, (char*)sensor_data_3);
+  strcpy_P(buffer, (char*)on_off_data_3);
   json_str += buffer;
   Send_json(json_str);
 }
@@ -209,12 +237,12 @@ void Range_Data(String device)  // led
   Send_json(json_str);
 }
 
-void Autocheck_Sensor(int duration)
+void Autocheck_Sensor()
 {
   Serial.println("Autocheck Sensor");
 
   strcpy_P(buffer, (char*)autocheck_sensor_1);
-  String json_str = String(buffer) + String(duration);
+  String json_str = String(buffer) + String(sleeptime);
   strcpy_P(buffer, (char*)sensor_data_3);
   json_str += buffer;
   Send_json(json_str);
@@ -223,7 +251,7 @@ void Autocheck_Sensor(int duration)
 
 
 ////////Json Decoding
-void Json_decoding()
+int Json_decoding()
 {
   Serial.println("json decoding");
   
@@ -245,15 +273,17 @@ void Json_decoding()
   const String device = body["device"];
   const int second = body["second"];
 
-  //Request Device list
+  //Request Device list :: 1
   if (!url.compareTo("/devices") && !method.compareTo("GET"))
   {
     Serial.println("Request Device list");
 
-    Attatch_Devices();
+    return 1;
+    
+    //Attatch_Devices();
   }
 
-  //Request Sensor data
+  //Request Sensor data :: 2
   if (!url.compareTo("/sensors") && !method.compareTo("POST"))
   {
     Serial.println("Request Sensor data");
@@ -281,18 +311,24 @@ void Json_decoding()
       sensor_value = analogRead(GasSensorPin);
     }
 
-    Post_Sensor_Data(sensor, sensor_value);
+    temp_sensor = sensor;
+    temp_sensor_value = sensor_value;
+    return 2;
+    
+    //Post_Sensor_Data(sensor, sensor_value);
   }
 
-  //Request On/Off data
+  //Request On/Off data :: 3
   if (!url.compareTo("/onoff") && !method.compareTo("GET"))
   {
     Serial.println("Request On/Off data");
 
-    On_Off_Data(device);
+    return 3;
+    
+    //On_Off_Data(device);
   }
 
-  //Set On/Off data
+  //Set On/Off data :: 4
   if (!url.compareTo("/onoff") && !method.compareTo("PUT"))
   {
     const String state = body["state"];
@@ -311,43 +347,56 @@ void Json_decoding()
     }
     digitalWrite(waterpumpPin, onoff);
 
-    On_Off_Data(device);
+    return 4;
+
+    //On_Off_Data(device);
   }
 
-  //Request Range data
+  //Request Range data :: 5 
   if (!url.compareTo("/range") && !method.compareTo("GET"))
   {
     Serial.println("Request Range data");
 
-    Range_Data(device);
+    return 5;
+    
+    //Range_Data(device);
   }
 
-  //Set Range data
+  //Set Range data ::6
   if (!url.compareTo("/range") && !method.compareTo("PUT"))
   {
     Serial.println("Set Range data");
     const int state = body["state"];
     led = state;
     analogWrite(ledPin, (led * 50));
-    Range_Data(device);
+    
+    return 6;
+    
+    //Range_Data(device);   
   }
 
-  //Request Sensor data autocheck duration
+  //Request Sensor data autocheck duration :: 7
   if (!url.compareTo("/duration") && !method.compareTo("GET"))
   {
     Serial.println("Request Sensor data autocheck duration");
 
-    Autocheck_Sensor(sleeptime);
+    return 7;
+
+    //Autocheck_Sensor(sleeptime);
   }
 
-  //Set Sensor data autocheck duration
+  //Set Sensor data autocheck duration :: 8
   if (!url.compareTo("/duration") && !method.compareTo("PUT"))
   {
     Serial.println("Set Sensor data autocheck duration");
 
     sleeptime = second;
     count = 0;
-    Autocheck_Sensor(sleeptime);
-  }
-}
 
+    return 8;
+    
+    //Autocheck_Sensor(sleeptime);
+  }
+
+  return 0;
+}
