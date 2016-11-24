@@ -1,12 +1,10 @@
-//제어아두이노 코드 수정중4
-
 #include <ArduinoJson.h>
 #include <Servo.h>
 #include <WiFi.h>
 #include <SPI.h>
-using namespace std;
+
 Servo Servo1;
-int coolpin = 7;
+int coolpin = 8;
 int heatpin = 4;
 
 void Attach_Arduino();
@@ -46,6 +44,7 @@ void setup() {
     // 와이파이 실드가 아닐 경우
     while (true);
   }
+  Serial.println(WiFi.firmwareVersion());
   // 와이파이 연결 시도
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to WPA SSID: ");
@@ -67,7 +66,7 @@ void setup() {
   Serial.println();
 
   delay(3000);
-  
+
   Attach_Devices();
   Serial.println();
 
@@ -83,16 +82,18 @@ void loop() {
   //Request Device list :: 1
   //Request On/Off data :: 3
   //Set On/Off data :: 4
-  
+
   int what_json = Json_decoding();
 
-    switch(what_json)
+  switch (what_json)
   {
     case 1 : Attach_Devices(); break;
     case 3 : On_Off_Data(temp_device); break;
     case 4 : On_Off_Data(temp_device); break;
     default : break;
-  }  
+  }
+
+  delay(1000);
 }
 
 void Send_json(String json_str)
@@ -169,7 +170,7 @@ void On_Off_Data(String device) {
   json_str += (buffer + state);
   strcpy_P(buffer, (char*)on_off_data_3);
   json_str += buffer;
-  Send_json(json_str);
+ Send_json(json_str);
 }
 
 int Json_decoding()
@@ -217,9 +218,9 @@ int Json_decoding()
 
     onoff_Set(device, state);
     temp_device = device;
-    
+
     return 4;
-    
+
     //On_Off_Data(device);
   }
   return 0;

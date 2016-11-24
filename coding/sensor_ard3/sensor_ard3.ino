@@ -1,7 +1,7 @@
 #include <ArduinoJson.h>
 #include <DHT.h>
 #define DHTPIN 2
-#define DHTTYPE DHT22
+#define DHTTYPE DHT22 
 DHT dht(DHTPIN, DHTTYPE);
 #include <WiFi.h>
 #include <SPI.h>
@@ -82,7 +82,7 @@ void setup()
     delay(5000);
   }
 
-  sleeptime = 60;
+  sleeptime = 10;
 
   pinMode(waterpumpPin, OUTPUT);
   pinMode(ledPin, OUTPUT);
